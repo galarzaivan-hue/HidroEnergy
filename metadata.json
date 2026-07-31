@@ -1,0 +1,6 @@
+{
+  "name": "HydroEnergy",
+  "description": "Calculadora técnica de energía hidroeléctrica (MWh), potencia y caudal para el Comité Nacional de Despacho de Carga (CNDC).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

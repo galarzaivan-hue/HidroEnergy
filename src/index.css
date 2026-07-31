@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .font-mono-num {
+    font-family: 'JetBrains Mono', monospace, sans-serif;
+  }
+  
+  .bg-cndc-blue {
+    background-color: #0051A1;
+  }
+  .bg-cndc-darkblue {
+    background-color: #003870;
+  }
+  .text-cndc-blue {
+    color: #0051A1;
+  }
+  .border-cndc-blue {
+    border-color: #0051A1;
+  }
+
+  .bg-cndc-orange {
+    background-color: #F26522;
+  }
+  .text-cndc-orange {
+    color: #F26522;
+  }
+  .border-cndc-orange {
+    border-color: #F26522;
+  }
+
+  .bg-cndc-yellow {
+    background-color: #FFB703;
+  }
+  .text-cndc-yellow {
+    color: #FFB703;
+  }
+  .border-cndc-yellow {
+    border-color: #FFB703;
+  }
+}
+
+/* Base body background - Dark Corporate CNDC #0B1320 */
+body {
+  background-color: #0B1320;
+  color: #f8fafc;
+}
+
+/* Hide spin buttons for Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Hide spin buttons for Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* Custom scrollbars with CNDC Blue tint */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0B1320;
+}
+::-webkit-scrollbar-thumb {
+  background: #0051A1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #003870;
+}
+
+
+
