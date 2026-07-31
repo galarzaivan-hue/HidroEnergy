@@ -34,11 +34,11 @@ export const PlantSelector: React.FC<PlantSelectorProps> = ({
             const plant = HYDRO_PLANTS.find(p => p.code === e.target.value);
             if (plant) onSelectPlant(plant);
           }}
-          className="w-full appearance-none bg-slate-900 text-white text-base font-bold rounded-xl px-4 py-3.5 pr-10 border-2 border-slate-700 hover:border-[#0051A1] focus:border-[#FFB703] focus:outline-none focus:ring-2 focus:ring-[#FFB703]/30 transition-all cursor-pointer shadow-inner"
+          className="w-full appearance-none bg-slate-900 text-white text-base font-bold rounded-xl px-4 py-3.5 pr-10 border-2 border-slate-700 hover:border-[#0051A1] focus:border-[#FFB703] focus:outline-none focus:ring-2 focus:ring-[#FFB703]/30 transition-all cursor-pointer shadow-inner truncate"
         >
           {HYDRO_PLANTS.map((plant) => (
             <option key={plant.code} value={plant.code} className="bg-slate-900 text-white py-2">
-              [{plant.code}] {plant.name} — Kprod: {plant.kProd} MW/(m³/s)
+              [{plant.code}] {plant.name}
             </option>
           ))}
         </select>
