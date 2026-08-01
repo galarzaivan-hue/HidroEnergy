@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { HydroPlant, CalculationHistoryItem } from '../types';
 import { PlantSelector } from './PlantSelector';
+import { DispatchEstimation } from './DispatchEstimation';
 import { calculateEnergyFromVolume, formatNum } from '../utils/formatters';
 import {
   Droplet,
@@ -197,6 +198,12 @@ export const TabVolume: React.FC<TabVolumeProps> = ({
           </button>
         </div>
       </div>
+
+      {/* 5. Módulo de Estimación de Despacho y Duración de Agua */}
+      <DispatchEstimation
+        energyMWh={energyMWh}
+        selectedPlant={selectedPlant}
+      />
     </div>
   );
 };

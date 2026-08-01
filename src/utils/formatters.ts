@@ -63,3 +63,21 @@ export function calculateVolumeFromFlowAndTime(flowM3s: number, hours: number): 
   if (flowM3s <= 0 || hours <= 0) return 0;
   return (flowM3s * hours * 3.6) / 1000;
 }
+
+export function formatHoursToDaysAndHours(hours: number): { mainHours: string; daysFormatted: string } {
+  if (isNaN(hours) || !isFinite(hours) || hours <= 0) {
+    return { mainHours: '0.0', daysFormatted: '0 días y 0.0 h' };
+  }
+  const days = Math.floor(hours / 24);
+  const remHours = hours % 24;
+  const mainHours = formatNum(hours, 1);
+  
+  if (days === 0) {
+    return { mainHours, daysFormatted: `${formatNum(hours, 1)} h` };
+  }
+  
+  const dayStr = days === 1 ? '1 día' : `${days} días`;
+  const hourStr = `${formatNum(remHours, 1)} h`;
+  
+  return { mainHours, daysFormatted: `${dayStr} y ${hourStr}` };
+}
