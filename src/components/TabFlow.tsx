@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { HydroPlant, CalculationHistoryItem } from '../types';
 import { TIME_PRESETS } from '../data/plants';
 import { PlantSelector } from './PlantSelector';
+import { DispatchEstimation } from './DispatchEstimation';
 import {
   calculatePowerFromFlow,
   calculateEnergyFromFlowAndTime,
@@ -350,6 +351,16 @@ export const TabFlow: React.FC<TabFlowProps> = ({
           </div>
         )}
       </div>
+
+      {/* 6. Módulo de Distribución de Energía y Horas de Despacho */}
+      <DispatchEstimation
+        energyMWh={totalEnergyMWh}
+        selectedPlant={selectedPlant}
+        title="Distribución de Energía y Horas de Despacho"
+        inputLabel="Potencia de Despacho Objetivo (MW)"
+        maxPowerButtonLabel="[ Cargar P. Máxima ]"
+        initialFlowM3s={numFlow}
+      />
     </div>
   );
 };

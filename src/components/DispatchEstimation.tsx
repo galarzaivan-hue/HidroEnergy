@@ -15,11 +15,19 @@ import {
 interface DispatchEstimationProps {
   energyMWh: number;
   selectedPlant: HydroPlant;
+  title?: string;
+  inputLabel?: string;
+  maxPowerButtonLabel?: string;
+  initialFlowM3s?: number;
 }
 
 export const DispatchEstimation: React.FC<DispatchEstimationProps> = ({
   energyMWh,
   selectedPlant,
+  title = 'Estimación de Despacho y Duración de Agua',
+  inputLabel = 'Potencia de Despacho Prevista (MW)',
+  maxPowerButtonLabel = '[ Cargar P. Máxima ]',
+  initialFlowM3s,
 }) => {
   // Collapsible state for optimal mobile space management
   const [isOpen, setIsOpen] = useState<boolean>(true);
@@ -51,6 +59,9 @@ export const DispatchEstimation: React.FC<DispatchEstimationProps> = ({
   // Capacity overload flag
   const isOverCapacity = dispatchPowerMW > selectedPlant.capacityMW;
 
+  // Flow difference if initialFlowM3s is provided
+  const flowDiff = initialFlowM3s !== undefined ? requiredFlowM3s - initialFlowM3s : null;
+
   return (
     <div className="bg-[#1e293b] rounded-2xl border-2 border-[#00E5FF]/40 shadow-xl overflow-hidden transition-all duration-300">
       {/* Header Bar */}
@@ -65,7 +76,7 @@ export const DispatchEstimation: React.FC<DispatchEstimationProps> = ({
           </div>
           <div>
             <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
-              Estimación de Despacho y Duración de Agua
+              {title}
             </h3>
             <p className="text-[11px] text-slate-300 mt-0.5">
               Simulación basada en <strong className="text-[#00E5FF]">{formatNum(energyMWh, 2)} MWh</strong>
@@ -86,7 +97,7 @@ export const DispatchEstimation: React.FC<DispatchEstimationProps> = ({
       {/* Content Area */}
       {isOpen && (
         <div className="p-4 sm:p-5 space-y-4 animate-fadeIn">
-          {/* Input Section: Potencia de Despacho Prevista (MW) */}
+          {/* Input Section: Potencia de Despacho Objetivo (MW) */}
           <div className="space-y-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <label
@@ -94,10 +105,10 @@ export const DispatchEstimation: React.FC<DispatchEstimationProps> = ({
                 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5"
               >
                 <Zap className="w-4 h-4 text-[#FFB703]" />
-                Potencia de Despacho Prevista (MW)
+                {inputLabel}
               </label>
 
-              {/* Action Button: [ Usar P. Máxima ] */}
+              {/* Action Button: [ Cargar P. Máxima ] */}
               <button
                 type="button"
                 onClick={() =>
@@ -105,7 +116,7 @@ export const DispatchEstimation: React.FC<DispatchEstimationProps> = ({
                 }
                 className="text-[11px] font-bold text-[#00E5FF] bg-[#00E5FF]/10 hover:bg-[#00E5FF]/20 border border-[#00E5FF]/40 px-2.5 py-1 rounded-lg transition-all active:scale-95 shadow-sm"
               >
-                [ Usar P. Máxima ] ({formatNum(selectedPlant.capacityMW, 2)} MW)
+                {maxPowerButtonLabel} ({formatNum(selectedPlant.capacityMW, 2)} MW)
               </button>
             </div>
 
@@ -161,7 +172,7 @@ export const DispatchEstimation: React.FC<DispatchEstimationProps> = ({
             <div className="bg-slate-900/90 rounded-2xl p-4 border border-[#00E5FF]/40 text-center space-y-2 shadow-inner flex flex-col items-center justify-center">
               <span className="text-[11px] uppercase tracking-wider text-slate-300 font-bold flex items-center justify-center gap-1.5">
                 <Clock className="w-4 h-4 text-[#00E5FF]" />
-                Tiempo de Operación Estimado
+                Horas de Despacho Continuo
               </span>
 
               {/* Big Cyan Text */}
@@ -180,7 +191,7 @@ export const DispatchEstimation: React.FC<DispatchEstimationProps> = ({
             <div className="bg-slate-900/90 rounded-2xl p-4 border border-[#0051A1] text-center space-y-2 flex flex-col items-center justify-center">
               <span className="text-[11px] uppercase tracking-wider text-slate-300 font-bold flex items-center justify-center gap-1.5">
                 <Waves className="w-4 h-4 text-[#FFB703]" />
-                Caudal Turbinado Requerido
+                Caudal Requerido (Q<sub>req</sub>)
               </span>
 
               <div className="text-2xl sm:text-3xl font-black text-white font-mono-num">
@@ -188,9 +199,31 @@ export const DispatchEstimation: React.FC<DispatchEstimationProps> = ({
                 <span className="text-sm font-bold text-[#FFB703]">m³/s</span>
               </div>
 
-              <div className="text-[10px] text-slate-400 font-mono-num">
-                Q = {formatNum(dispatchPowerMW, 2)} MW / {selectedPlant.kProd} Kprod
-              </div>
+              {/* Optional comparison with Q_inicial if initialFlowM3s was passed */}
+              {initialFlowM3s !== undefined ? (
+                <div className="space-y-0.5">
+                  <div className="text-[11px] text-slate-300 font-mono-num">
+                    Q inicial ingresado: <strong className="text-white">{formatNum(initialFlowM3s, 2)} m³/s</strong>
+                  </div>
+                  {flowDiff !== null && Math.abs(flowDiff) > 0.01 && (
+                    <div className="text-[10px] font-bold font-mono-num">
+                      {flowDiff > 0 ? (
+                        <span className="text-[#FFB703]">
+                          📈 Requiere +{formatNum(flowDiff, 2)} m³/s adicional vs Q inicial
+                        </span>
+                      ) : (
+                        <span className="text-[#00E5FF]">
+                          📉 Requiere -{formatNum(Math.abs(flowDiff), 2)} m³/s vs Q inicial
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-[10px] text-slate-400 font-mono-num">
+                  Q = {formatNum(dispatchPowerMW, 2)} MW / {selectedPlant.kProd} Kprod
+                </div>
+              )}
             </div>
           </div>
         </div>
