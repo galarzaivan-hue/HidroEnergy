@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   ChevronDown,
   ChevronUp,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface DispatchEstimationProps {
@@ -21,25 +22,34 @@ interface DispatchEstimationProps {
   initialFlowM3s?: number;
 }
 
+// Blocks definition with reserve discounts
+const TIME_BLOCKS = [
+  { id: 'BA', name: 'Bloque Alto', label: 'BA (8% Res)', reservePct: 8, factor: 0.92 },
+  { id: 'BM', name: 'Bloque Medio', label: 'BM (11% Res)', reservePct: 11, factor: 0.89 },
+  { id: 'BB', name: 'Bloque Bajo', label: 'BB (12% Res)', reservePct: 12, factor: 0.88 },
+];
+
 export const DispatchEstimation: React.FC<DispatchEstimationProps> = ({
   energyMWh,
   selectedPlant,
   title = 'Estimación de Despacho y Duración de Agua',
   inputLabel = 'Potencia de Despacho Prevista (MW)',
-  maxPowerButtonLabel = '[ Cargar P. Máxima ]',
+  maxPowerButtonLabel = '[ Cargar P. Óptima BA ]',
   initialFlowM3s,
 }) => {
   // Collapsible state for optimal mobile space management
   const [isOpen, setIsOpen] = useState<boolean>(true);
 
-  // Local state for Target Dispatch Power (MW)
-  const [dispatchPowerInput, setDispatchPowerInput] = useState<string>(
-    selectedPlant.capacityMW.toString()
-  );
+  // Default to Potencia Óptima BA (8% Reserve)
+  const pOptimaBA = (selectedPlant.capacityMW * 0.92).toFixed(2);
 
-  // Sync dispatch input when plant changes
+  // Local state for Target Dispatch Power (MW)
+  const [dispatchPowerInput, setDispatchPowerInput] = useState<string>(pOptimaBA);
+
+  // Sync dispatch input when plant changes (defaults to Potencia Óptima BA)
   useEffect(() => {
-    setDispatchPowerInput(selectedPlant.capacityMW.toString());
+    const updatedBA = (selectedPlant.capacityMW * 0.92).toFixed(2);
+    setDispatchPowerInput(updatedBA);
   }, [selectedPlant.code, selectedPlant.capacityMW]);
 
   // Numerical calculations
@@ -61,6 +71,11 @@ export const DispatchEstimation: React.FC<DispatchEstimationProps> = ({
 
   // Flow difference if initialFlowM3s is provided
   const flowDiff = initialFlowM3s !== undefined ? requiredFlowM3s - initialFlowM3s : null;
+
+  // Check if current power matches any block
+  const activeBlock = TIME_BLOCKS.find(
+    (b) => Math.abs(dispatchPowerMW - selectedPlant.capacityMW * b.factor) < 0.05
+  );
 
   return (
     <div className="bg-[#1e293b] rounded-2xl border-2 border-[#00E5FF]/40 shadow-xl overflow-hidden transition-all duration-300">
@@ -97,8 +112,8 @@ export const DispatchEstimation: React.FC<DispatchEstimationProps> = ({
       {/* Content Area */}
       {isOpen && (
         <div className="p-4 sm:p-5 space-y-4 animate-fadeIn">
-          {/* Input Section: Potencia de Despacho Objetivo (MW) */}
-          <div className="space-y-2">
+          {/* Input Section: Potencia de Despacho Objetivo / Prevista (MW) */}
+          <div className="space-y-2.5">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <label
                 htmlFor="dispatch-power-input"
@@ -108,19 +123,19 @@ export const DispatchEstimation: React.FC<DispatchEstimationProps> = ({
                 {inputLabel}
               </label>
 
-              {/* Action Button: [ Cargar P. Máxima ] */}
+              {/* Action Button: [ Cargar P. Óptima BA ] */}
               <button
                 type="button"
                 onClick={() =>
-                  setDispatchPowerInput(selectedPlant.capacityMW.toString())
+                  setDispatchPowerInput((selectedPlant.capacityMW * 0.92).toFixed(2))
                 }
                 className="text-[11px] font-bold text-[#00E5FF] bg-[#00E5FF]/10 hover:bg-[#00E5FF]/20 border border-[#00E5FF]/40 px-2.5 py-1 rounded-lg transition-all active:scale-95 shadow-sm"
               >
-                {maxPowerButtonLabel} ({formatNum(selectedPlant.capacityMW, 2)} MW)
+                {maxPowerButtonLabel} ({formatNum(selectedPlant.capacityMW * 0.92, 2)} MW)
               </button>
             </div>
 
-            {/* Input Field */}
+            {/* Input Field with Badge */}
             <div className="relative">
               <input
                 id="dispatch-power-input"
@@ -137,9 +152,55 @@ export const DispatchEstimation: React.FC<DispatchEstimationProps> = ({
               </div>
             </div>
 
-            {/* Quick Presets */}
+            {/* Selector Rápido de Bloques con Descuento de Reserva Operativa */}
+            <div className="space-y-1.5 pt-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#FFB703]" />
+                  Reserva por Bloque Horario (Potencia Óptima)
+                </span>
+                {activeBlock && (
+                  <span className="text-[10px] font-extrabold text-[#00E5FF] bg-[#00E5FF]/10 px-2 py-0.5 rounded border border-[#00E5FF]/30">
+                    {activeBlock.name} ({activeBlock.reservePct}% Res)
+                  </span>
+                )}
+              </div>
+
+              {/* 3 Block Chips */}
+              <div className="grid grid-cols-3 gap-2">
+                {TIME_BLOCKS.map((block) => {
+                  const blockPower = selectedPlant.capacityMW * block.factor;
+                  const isSelected =
+                    Math.abs(dispatchPowerMW - blockPower) < 0.05;
+
+                  return (
+                    <button
+                      key={block.id}
+                      type="button"
+                      onClick={() =>
+                        setDispatchPowerInput(blockPower.toFixed(2))
+                      }
+                      className={`py-2 px-2.5 rounded-xl border transition-all text-center flex flex-col items-center justify-center active:scale-95 ${
+                        isSelected
+                          ? 'bg-[#0051A1] border-[#00E5FF] text-white shadow-md ring-2 ring-[#00E5FF]/40'
+                          : 'bg-slate-900/80 hover:bg-slate-800 border-slate-700 text-slate-200'
+                      }`}
+                    >
+                      <span className="text-xs font-black tracking-tight flex items-center gap-1">
+                        [{block.label}]
+                      </span>
+                      <span className="text-[11px] font-mono-num font-bold text-[#FFB703] mt-0.5">
+                        {formatNum(blockPower, 2)} MW
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Quick Presets (100% P.Máx and percentages) */}
             <div className="grid grid-cols-4 gap-1.5 pt-1">
-              {[25, 50, 75, 100].map((pct) => (
+              {[100, 75, 50, 25].map((pct) => (
                 <button
                   key={pct}
                   type="button"
@@ -148,7 +209,7 @@ export const DispatchEstimation: React.FC<DispatchEstimationProps> = ({
                       (selectedPlant.capacityMW * (pct / 100)).toFixed(2)
                     )
                   }
-                  className="py-1.5 text-xs font-bold rounded-lg bg-slate-800 hover:bg-[#0051A1] text-slate-200 hover:text-white border border-slate-700 active:scale-95 transition-all font-mono-num text-center"
+                  className="py-1.5 text-xs font-bold rounded-lg bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 active:scale-95 transition-all font-mono-num text-center"
                 >
                   {pct === 100 ? '100% P.Máx' : `${pct}%`}
                 </button>
@@ -231,3 +292,4 @@ export const DispatchEstimation: React.FC<DispatchEstimationProps> = ({
     </div>
   );
 };
+
